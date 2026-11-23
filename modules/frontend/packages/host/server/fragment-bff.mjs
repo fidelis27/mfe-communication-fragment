@@ -22,6 +22,24 @@ function sendJson(res, status, body) {
 }
 
 /**
+ * Fetches the Provider's stylesheet (URL from the fragment headers) so it ships inline with
+ * the markup: one response to the browser, no unstyled flash while a second request runs.
+ */
+async function fetchFragmentStyles(stylesUrl, name) {
+  if (!stylesUrl) return "";
+  try {
+    const response = await fetch(stylesUrl, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return "";
+    const css = (await response.text()).replaceAll("</style", "<\\/style");
+    return `<style data-module-styles="${name}">${css}</style>`;
+  } catch (error) {
+    // Unstyled markup is better than no fragment; the client bundle still injects the styles.
+    console.error(`[host] styles for "${name}" failed`, error);
+    return "";
+  }
+}
+
+/**
  * Host server: fetches a Provider's fragment server to server and returns its metadata plus
  * rendered HTML as JSON, so the browser can embed it without ever reaching the Provider's API.
  * Only the configured Provider origins are contacted and nothing from the request is forwarded.
@@ -45,14 +63,17 @@ export function createFragmentBff({ providers, basePath = BFF_PATH }) {
         basePath: PROVIDER_PATH,
         allowedHosts,
       });
-      const html = await fragment.html();
+      const [markup, styles] = await Promise.all([
+        fragment.html(),
+        fetchFragmentStyles(fragment.styles, name),
+      ]);
+      const html = `${styles}${markup}`;
       const info = {
         id: fragment.id,
         name: fragment.name,
         appName: fragment.appName,
         script: fragment.script,
         ...(fragment.integrity ? { integrity: fragment.integrity } : {}),
-        ...(fragment.styles ? { styles: fragment.styles } : {}),
       };
       return sendJson(res, 200, { fragment: info, html });
     } catch (error) {

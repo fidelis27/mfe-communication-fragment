@@ -44,11 +44,7 @@ test("host loads all five real modules through fragment navigation", async ({ pa
       page.getByRole("main").getByRole("heading", { level: 1, name: module.heading }),
     ).toBeVisible();
     // One copy comes with the fragment HTML; the client bundle may add its own when it loads.
-    await expect(
-      page
-        .locator(`link[data-fragment-styles][href$="/api/fragments/assets/${module.name}.css"]`)
-        .first(),
-    ).toBeAttached();
+    await expect(page.locator(`style[data-module-styles="${module.name}"]`).first()).toBeAttached();
   }
 });
 
@@ -80,9 +76,9 @@ test("fragment styles arrive with the HTML even when the client script is blocke
   await page.route("**/api/fragments/assets/student.client.js", (route) => route.abort());
   await page.goto("/estudantes");
 
-  const styles = page.locator("link[data-fragment-styles]");
+  const styles = page.locator('style[data-module-styles="student"]');
   await expect(styles).toHaveCount(1);
-  await expect.poll(() => styles.evaluate((element) => element.sheet !== null)).toBe(true);
+  expect(await styles.evaluate((element) => element.textContent)).toContain("student-shell");
   await expect(page.getByRole("heading", { name: /Vínculos que acompanham/ })).toBeVisible();
 });
 
