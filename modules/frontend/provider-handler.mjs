@@ -45,8 +45,8 @@ function failWith(appName, message) {
  * - `GET <basePath>/<fragmentName>` streams the server-rendered fragment.
  * - `GET <basePath>/assets/<fragmentName>.client.js` serves the browser bundle with CORS
  *   limited to the Host origins; its SRI hash is sent with the fragment headers.
- * - `GET <basePath>/assets/<fragmentName>.css` serves the module styles, which the Host server
- *   embeds in the fragment HTML.
+ * - `GET <basePath>/assets/<fragmentName>.css` serves the module styles. The fragment definition
+ *   declares them (`styles`), so the Consumer links them before the markup.
  *
  * `distRoots` are candidate `dist` directories containing `modules/<name>.js` (browser
  * bundle) and `server/fragment.server.js` (server bundle).
@@ -84,7 +84,13 @@ export function createProviderHandler({
   let fragmentHandler;
   const loadFragmentHandler = () => {
     fragmentHandler ??= import(serverEntry)
-      .then((mod) => mod.createFragmentProvider({ clientScript: scriptPath, integrity }))
+      .then((mod) =>
+        mod.createFragmentProvider({
+          clientScript: scriptPath,
+          integrity,
+          styles: css ? cssPath : undefined,
+        }),
+      )
       .catch((error) => {
         fragmentHandler = undefined;
         throw error;
