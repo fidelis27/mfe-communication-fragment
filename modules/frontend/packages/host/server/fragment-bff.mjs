@@ -21,23 +21,6 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-/** Styles the Provider ships next to its client script (`<name>.client.js` -> `<name>.css`). */
-async function fetchFragmentStyles(scriptUrl, name) {
-  const cssUrl = new URL(scriptUrl);
-  cssUrl.pathname = cssUrl.pathname.replace(/\.client\.js$/, ".css");
-  if (cssUrl.pathname === new URL(scriptUrl).pathname) return "";
-  try {
-    const response = await fetch(cssUrl, { signal: AbortSignal.timeout(5000) });
-    if (!response.ok) return "";
-    const css = (await response.text()).replaceAll("</style", "<\\/style");
-    return `<style data-module-styles="${name}">${css}</style>`;
-  } catch (error) {
-    // Unstyled markup is better than no fragment; the client bundle still injects the styles.
-    console.error(`[host] styles for "${name}" failed`, error);
-    return "";
-  }
-}
-
 /**
  * Host server: fetches a Provider's fragment server to server and returns its metadata plus
  * rendered HTML as JSON, so the browser can embed it without ever reaching the Provider's API.
@@ -62,17 +45,14 @@ export function createFragmentBff({ providers, basePath = BFF_PATH }) {
         basePath: PROVIDER_PATH,
         allowedHosts,
       });
-      const [markup, styles] = await Promise.all([
-        fragment.html(),
-        fetchFragmentStyles(fragment.script, name),
-      ]);
-      const html = `${styles}${markup}`;
+      const html = await fragment.html();
       const info = {
         id: fragment.id,
         name: fragment.name,
         appName: fragment.appName,
         script: fragment.script,
         ...(fragment.integrity ? { integrity: fragment.integrity } : {}),
+        ...(fragment.styles ? { styles: fragment.styles } : {}),
       };
       return sendJson(res, 200, { fragment: info, html });
     } catch (error) {

@@ -75,11 +75,10 @@ function RemoteModule({ name }: { name: ModuleId }) {
 
   return (
     <FragmentSlot
-      key={state.fragment.id}
       fragment={state.fragment}
       html={state.html}
       allowedHosts={[moduleHosts[name]]}
-      onHydrated={() => markRemoteReady(name)}
+      onReady={() => markRemoteReady(name)}
       onError={(error) => captureHostError(error, { moduleName: name })}
     />
   );

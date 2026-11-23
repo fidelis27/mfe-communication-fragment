@@ -35,9 +35,10 @@ fallback yet.
 - The Host gets a small server, `GET /api/fragments/:module`
   (`host/server/fragment-bff.mjs`). It calls `fetchFragment` with the configured
   provider origins as the allowlist, forwards nothing from the request, and
-  fetches the Provider's styles from the same origin and puts them in a `<style>`
-  before the markup, then returns `{ fragment, html }` as JSON. The browser renders
-  `<FragmentSlot fragment html>`, which hydrates with the Provider's React. The
+  returns `{ fragment, html }` as JSON. `fragment.styles` (from the Provider's
+  allowlisted `x-fragment-styles` header) is linked by `FragmentSlot` before the
+  markup. The browser renders `<FragmentSlot fragment html>`, which hydrates with
+  the Provider's React. The
   same handler runs in `vite dev`/`vite preview` and as a Vercel Function.
 - The Host shell stays client-rendered. Loading, retry fallback, error reporting
   and the ready mark (now emitted when the fragment is hydrated) are kept; the

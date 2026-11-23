@@ -21,8 +21,8 @@ vi.mock("@lib-core-mfe/fragment-frontend/consumer", async () => {
   const React = await import("react");
   const { default: RemoteAppMock } = await import("./__mocks__/RemoteAppMock");
 
-  function FragmentSlotMock({ onHydrated }: { onHydrated?: () => void }) {
-    React.useEffect(() => onHydrated?.(), [onHydrated]);
+  function FragmentSlotMock({ onReady }: { onReady?: () => void }) {
+    React.useEffect(() => onReady?.(), [onReady]);
     return React.createElement(RemoteAppMock);
   }
 

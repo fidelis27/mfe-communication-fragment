@@ -4,15 +4,17 @@ import Root from "./Root";
 export function createFragmentProvider({
   clientScript,
   integrity,
+  styles,
 }: {
   clientScript: string;
   integrity?: string;
+  styles?: string;
 }) {
   return createFragmentHandler({
     appName: "mfe-admin",
     basePath: "/api/fragments",
     fragments: {
-      admin: { Component: Root, clientScript, integrity, getProps: () => ({}) },
+      admin: { Component: Root, clientScript, integrity, styles, getProps: () => ({}) },
     },
     onError: (error) => console.error("[mfe-admin] render error", error),
   });
