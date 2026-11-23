@@ -10,8 +10,10 @@ can be reused without coupling one remote to another.
 page and raised surfaces, text, action and status colors, borders, focus,
 typography, spacing, radii, and elevation. The page uses one neutral background;
 module identity belongs in small accents, not page-level gradients. Inter is
-bundled through `@fontsource/inter`; use the regular, medium, and semibold
-weights and the shared type scale.
+bundled through `@fontsource/inter` in `shared/src/fonts.css`, which only the page
+shell imports (the Host, or a remote's standalone `main.tsx`). Fragment bundles
+must not import it: Vite lib builds inline fonts as base64. Use the regular,
+medium, and semibold weights and the shared type scale.
 
 Use semantic variables such as `--color-surface-page`,
 `--color-text-secondary`, `--color-danger-text`, `--radius-card`,

@@ -41,10 +41,12 @@ afterEach(() => {
 });
 
 describe("host fragment server", () => {
-  it("returns fragment metadata and html fetched from the configured provider", async () => {
-    const fetchMock = vi.fn((_url: URL) =>
+  it("returns fragment metadata and html with the Provider's stylesheet inline", async () => {
+    const fetchMock = vi.fn((url: URL) =>
       Promise.resolve(
-        providerResponse({ "x-fragment-styles": "/api/fragments/assets/student.css" }),
+        String(url).endsWith(".css")
+          ? new Response(".a{color:red}</style><b>", { headers: { "content-type": "text/css" } })
+          : providerResponse({ "x-fragment-styles": "/api/fragments/assets/student.css" }),
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
@@ -52,20 +54,42 @@ describe("host fragment server", () => {
     const { status, body } = await call("/api/fragments/student");
 
     expect(status).toBe(200);
-    expect(body.html).toBe("<div data-fragment-root>hi</div>");
+    expect(body.html).toContain("data-fragment-root");
+    expect(body.html.startsWith('<style data-module-styles="student">.a{color:red}')).toBe(true);
+    expect(body.html).not.toContain("</style><b>");
+    // Inline, so the Consumer must not add a second stylesheet link.
     expect(body.fragment).toEqual({
       id: "abc",
       name: "student",
       appName: "mfe-student",
       script: "https://student.example.com/api/fragments/assets/student.client.js",
       integrity: "sha384-xyz",
-      styles: "https://student.example.com/api/fragments/assets/student.css",
     });
-    // Styles travel as a URL the Consumer links; the BFF does not fetch them.
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
       "https://student.example.com/api/fragments/student",
     );
+    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+      "https://student.example.com/api/fragments/assets/student.css",
+    );
+  });
+
+  it("sends the fragment without styles when the styles request fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: URL) =>
+        Promise.resolve(
+          String(url).endsWith(".css")
+            ? new Response("no", { status: 500 })
+            : providerResponse({ "x-fragment-styles": "/api/fragments/assets/student.css" }),
+        ),
+      ),
+    );
+
+    const { status, body } = await call("/api/fragments/student");
+
+    expect(status).toBe(200);
+    expect(body.html.startsWith("<div data-fragment-root>")).toBe(true);
   });
 
   it("omits styles when the provider declares none", async () => {

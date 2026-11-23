@@ -1,0 +1,8 @@
+/*
+ * Inter faces. Loaded once by the page shell (Host, or a remote running standalone).
+ * Fragment bundles must not import this: Vite lib builds inline the fonts as base64,
+ * which made every module stylesheet ~220 KB heavier.
+ */
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";

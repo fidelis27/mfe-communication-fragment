@@ -1,3 +1,4 @@
+@import "@mfe/shared/fonts.css";
 @import "@mfe/shared/tokens.css";
 .appRoot {
   min-height: 100dvh;

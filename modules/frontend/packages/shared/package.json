@@ -17,11 +17,13 @@
       "import": "./dist/ui/index.js"
     },
     "./tokens.css": "./src/tokens.css",
+    "./fonts.css": "./src/fonts.css",
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
-    "src/tokens.css"
+    "src/tokens.css",
+    "src/fonts.css"
   ],
   "peerDependencies": {
     "react": "^18.2.0",
